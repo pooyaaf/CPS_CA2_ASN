@@ -21,6 +21,8 @@ qt_add_qml_module(appMotionAuth
         QML_FILES ProgressXYZBar.qml
         RESOURCES images/qt.png
         QML_FILES
+        QML_FILES Header.qml
+        QML_FILES
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
