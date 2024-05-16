@@ -23,17 +23,6 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.leftMargin: 10
             anchors.rightMargin: 10
-            ToolButton {
-                id: back
-                text: qsTr("Back")
-                font.pixelSize: root.defaultFontSize - 4
-                visible: stack.depth > 1
-                onClicked: {
-                    stack.pop();
-                    heading.text = root.title;
-                }
-                Layout.alignment: Qt.AlignLeft
-            }
             Label {
                 id: heading
                 text: root.title
@@ -48,6 +37,35 @@ ApplicationWindow {
                 Layout.preferredWidth: back.width
             }
         }
+    }
+    // Reset
+    function resetButton() {
+        // Reset gyroscope values
+        gyroscope.x = 0
+        gyroscope.y = 0
+        gyroscope.z = 0
+        gyroscope.lastTimeStamp = 0
+        gyroscope.underThrCount = 0
+
+        // Reset accelerometer values
+        accelerometer.x = 0
+        accelerometer.y = 0
+        accelerometer.z = 0
+        accelerometer.lastTimeStamp = 0
+        accelerometer.vx = 0
+        accelerometer.vy = 0
+        accelerometer.vz = 0
+        accelerometer.underThrCount = 0
+
+        // Reset rotation values
+        rotation.rx = 0
+        rotation.ry = 0
+        rotation.rz = 0
+
+        // Reset position values
+        position.px = 0
+        position.py = 0
+        position.pz = 0
     }
 
     // Main page content
@@ -181,50 +199,7 @@ ApplicationWindow {
                     }
                 }
 
-                // Image {
-                //     id: image
-
-                //     Layout.alignment: Qt.AlignHCenter
-                //     Layout.fillHeight: true
-                //     Layout.preferredWidth: layout.imageSize
-                //     fillMode: Image.PreserveAspectFit
-                //     source: "images/qt_logo.png"
-
-                //     transform: [
-                //         Rotation {
-                //             id: imageXRotation
-
-                //             angle: 0
-                //             axis.x: 1
-                //             axis.y: 0
-                //             axis.z: 0
-                //             origin.x: layout.width / 2
-                //             origin.y: layout.height / 3
-                //         },
-                //         Rotation {
-                //             id: imageYRotation
-
-                //             angle: 0
-                //             axis.x: 0
-                //             axis.y: 1
-                //             axis.z: 0
-                //             origin.x: layout.width / 2
-                //             origin.y: layout.height / 3
-                //         },
-                //         Rotation {
-                //             id: imageZRotation
-
-                //             angle: 0
-                //             axis.x: 0
-                //             axis.y: 0
-                //             axis.z: 1
-                //             origin.x: layout.width / 2
-                //             origin.y: layout.height / 3
-                //         }
-                //     ]
-                // }
-
-                component NamedProgressBar: ColumnLayout {
+                    component NamedProgressBar: ColumnLayout {
                     property alias text: axes.text
                     property alias value: bar.value
                     Text {
@@ -340,7 +315,7 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
-                    onClicked: root.resetRotations()
+                    onClicked: root.resetButton()
                 }
             }
         }
