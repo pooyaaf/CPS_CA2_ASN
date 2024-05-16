@@ -143,9 +143,7 @@ ApplicationWindow {
                     property real vy: 0
                     property real vz: 0
 
-                    property real bx: 0
-                    property real by: 0
-                    property real bz: 9.8
+                    property real bz: 9.8 // bias accelerate of g
 
                     property int underThrCount: 0
 
@@ -157,10 +155,8 @@ ApplicationWindow {
                         y = (reading as AccelerometerReading).y
                         z = (reading as AccelerometerReading).z
 
-                        // console.log(vx, vy, vz)
-
-                        let dx = x - bx
-                        let dy = y - by
+                        let dx = x
+                        let dy = y
                         let dz = z - bz
 
                         let firstCall = false
