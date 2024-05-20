@@ -17,9 +17,6 @@ ToolBar {
             Layout.alignment: Qt.AlignCenter
             Layout.preferredHeight: 55
         }
-        Item {
-            visible: back.visible
-            Layout.preferredWidth: back.width
-        }
+
     }
 }

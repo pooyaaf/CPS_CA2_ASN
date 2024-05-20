@@ -13,6 +13,9 @@ ApplicationWindow {
     readonly property int imageSize: width / 2
 
     property var path: []
+    property string lastDir: "top"
+    property string lastPosDir: "default"
+    property var startPos: ({ "x": 0, "y": 0 })
 
     visible: true
     width: 400
@@ -20,10 +23,49 @@ ApplicationWindow {
     title: "Motion Based Auth"
 
     header: Header {
-           id: headerComponent
+        id: headerComponent
     }
-    // Reset
+
+    // Recording state
+    property bool isRecording: false
+
+
+    function getDirection(degree) {
+        // Normalize the degree to a value between 0 and 359
+        var normalizedDegree = ((degree % 360) + 360) % 360;
+
+        // Find the closest direction
+        if (normalizedDegree >= 315 || normalizedDegree < 45) {
+            return "0";
+        } else if (normalizedDegree >= 45 && normalizedDegree < 135) {
+            return "90";
+        } else if (normalizedDegree >= 135 && normalizedDegree < 225) {
+            return "180";
+        } else if (normalizedDegree >= 225 && normalizedDegree < 315) {
+            return "-90";
+        } else {
+            return "unknown"; // Should not reach here
+        }
+    }
+
+    function getPositionDir(vx , vy){
+        let thrv = 1
+        if(vx >= thrv){
+            return "right"
+        }else if(vx <= -thrv){
+            return "left"
+        }else if(vy >= thrv){
+            return "top"
+        }else if(vy <= -thrv){
+            return "down"
+        }else{
+            return "default"
+        }
+    }
+    // reset
     function resetButton() {
+        lastPosDir = "default"
+        lastDir = "0"
         // Reset gyroscope values
         gyroscope.x = 0
         gyroscope.y = 0
@@ -32,9 +74,9 @@ ApplicationWindow {
         gyroscope.underThrCount = 0
 
         // Reset accelerometer values
-        accelerometer.x = 0
-        accelerometer.y = 0
-        accelerometer.z = 0
+        accelerometer.ax = 0
+        accelerometer.ay = 0
+        accelerometer.az = 0
         accelerometer.lastTimeStamp = 0
         accelerometer.vx = 0
         accelerometer.vy = 0
@@ -50,6 +92,44 @@ ApplicationWindow {
         position.px = 0
         position.py = 0
         position.pz = 0
+
+        // Clear path
+        path = []
+    }
+
+    function startRecording() {
+        isRecording = true
+        path = []
+        startPos["x"] = position.px.toFixed(2)
+        startPos["y"] = position.py.toFixed(2)
+    }
+
+    function stopRecording() {
+        isRecording = false
+        // Log path coordinates to console
+        console.log("Recorded Path:")
+        for (var i = 0; i < path.length; ++i) {
+            var point = path[i];
+            console.log(
+                        "Position(X):", point.x.toFixed(2),
+                        "Position(Y):", point.y.toFixed(2),
+                        "Position(Z):", point.z.toFixed(2));
+        }
+    }
+
+    function savePath(){
+        if (root.isRecording) {
+            // console.log("Save path starting ...")
+            let newState = {
+                "start": startPos,
+                "end": { "x": position.px.toFixed(2), "y": position.py.toFixed(2) },
+                "direction": lastPosDir,
+                "angle": lastDir
+            }
+            root.path.push(newState)
+            console.log("newState is:", JSON.stringify(newState))
+            startPos = { "x": position.px.toFixed(2), "y": position.py.toFixed(2) }
+        }
     }
 
     // Main page content
@@ -86,16 +166,14 @@ ApplicationWindow {
                         y = (reading as GyroscopeReading).y
                         z = (reading as GyroscopeReading).z
 
-                        let firstCall = false
-                        if (lastTimeStamp == 0) {
-                            firstCall = true
-                        }
+                        let firstCall = lastTimeStamp == 0
+
                         let newLast = reading.timestamp
                         let timeSinceLast = (newLast - lastTimeStamp) / 1000000
                         lastTimeStamp = newLast
 
                         if (firstCall === true)
-                            return
+                        return
 
                         let thr = 4
 
@@ -105,8 +183,13 @@ ApplicationWindow {
                             underThrCount = 0
                         }
 
-                        if (underThrCount === 4) {
-                            console.log("2")
+                        if (underThrCount === 5) {
+                            let currentDir = getDirection(rotation.rz)
+                            if((currentDir !== lastDir) && (currentDir !== "default")){
+                                console.log("from G")
+                                savePath()
+                                lastDir = currentDir
+                            }
                         }
 
                         rotation.rx += (x > thr || x < -thr) ? (x * timeSinceLast) : 0
@@ -119,9 +202,9 @@ ApplicationWindow {
                     id: accelerometer
 
                     property real lastTimeStamp: 0
-                    property real x: 0
-                    property real y: 0
-                    property real z: 0
+                    property real ax: 0
+                    property real ay: 0
+                    property real az: 0
 
                     property real vx: 0
                     property real vy: 0
@@ -135,43 +218,47 @@ ApplicationWindow {
                     dataRate: 100
 
                     onReadingChanged: {
-                        x = (reading as AccelerometerReading).x
-                        y = (reading as AccelerometerReading).y
-                        z = (reading as AccelerometerReading).z
+                        ax = (reading as AccelerometerReading).x
+                        ay = (reading as AccelerometerReading).y
+                        az = (reading as AccelerometerReading).z - bz
 
-                        let dx = x
-                        let dy = y
-                        let dz = z - bz
+                        let firstCall = lastTimeStamp == 0
 
-                        let firstCall = false
-                        if (lastTimeStamp == 0) {
-                            firstCall = true
-                        }
                         let newLast = reading.timestamp
                         let timeSinceLast = (newLast - lastTimeStamp) / 1000000
                         lastTimeStamp = newLast
 
                         if (firstCall === true)
-                            return
+                        return
 
                         let thr = 0.5
+                        let thrv = 1
 
-                        if ((dx <= thr && dx >= -thr) && (dy <= thr && dy >= -thr) && (dz <= thr && dz >= -thr)) {
+                        if ((ax <= thr && ax >= -thr) && (ay <= thr && ay >= -thr) && (az <= thr && az >= -thr)) {
                             underThrCount += 1
                         } else {
                             underThrCount = 0
                         }
 
                         if (underThrCount === 20) {
-                            console.log("25")
+                            // console.log(vx + " , " + vy)
                             vx = 0
                             vy = 0
                             vz = 0
                         }
 
-                        vx += (dx > thr || dx < -thr) ? (dx * timeSinceLast) : 0
-                        vy += (dy > thr || dy < -thr) ? (dy * timeSinceLast) : 0
-                        vz += (dz > thr || dz < -thr) ? (dz * timeSinceLast) : 0
+                        vx += (ax > thr || ax < -thr) ? (ax * timeSinceLast) : 0
+                        vy += (ay > thr || ay < -thr) ? (ay * timeSinceLast) : 0
+                        vz += (az > thr || az < -thr) ? (az * timeSinceLast) : 0
+
+                        let currentPosDir = getPositionDir(vx, vy)
+                        if(lastPosDir === "default"){
+                            lastPosDir = currentPosDir
+                        }else if((lastPosDir !== currentPosDir) && (currentPosDir !== "default")){
+                            console.log("from A", lastPosDir, currentPosDir)
+                            savePath()
+                            lastPosDir = currentPosDir
+                        }
 
                         position.px += vx * timeSinceLast * 100
                         position.py += vy * timeSinceLast * 100
@@ -179,7 +266,7 @@ ApplicationWindow {
                     }
                 }
 
-                    component NamedProgressBar: ColumnLayout {
+                component NamedProgressBar: ColumnLayout {
                     property alias text: axes.text
                     property alias value: bar.value
                     Text {
@@ -192,7 +279,6 @@ ApplicationWindow {
                         Layout.fillWidth: true
                     }
                 }
-
 
                 ColumnLayout {
                     id: rotation
@@ -230,7 +316,6 @@ ApplicationWindow {
                         id: zBar
                     }
                 }
-
 
                 ColumnLayout {
                     id: position
@@ -274,6 +359,15 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
+                    onClicked: {
+                        if (root.isRecording) {
+                            root.stopRecording()
+                            text = "Start Recording"
+                        } else {
+                            root.startRecording()
+                            text = "Stop Recording"
+                        }
+                    }
                 }
 
                 Button {
@@ -300,6 +394,4 @@ ApplicationWindow {
             }
         }
     }
-
-
 }
