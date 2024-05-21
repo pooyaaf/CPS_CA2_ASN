@@ -13,7 +13,7 @@ ApplicationWindow {
     readonly property int imageSize: width / 2
 
     property var path: []
-    property string lastDir: "top"
+    property string lastDir: "0"
     property string lastPosDir: "default"
     property var startPos: ({ "x": 0, "y": 0 })
 
@@ -48,8 +48,25 @@ ApplicationWindow {
         }
     }
 
+    function getGlobalDirection(localDirection, angle) {
+        const directions = ["top",  "left", "down", "right"];
+        const directionMap = {
+            "top": 0,
+            "right": 3,
+            "down": 2,
+            "left": 1
+        };
+
+        angle = ((angle % 360) + 360) % 360;
+        const steps = angle / 90;
+        const localIndex  = directionMap[localDirection];
+        const globalIndex = (((localIndex  + steps) % 4) + 4 ) % 4 ;
+
+        return directions[globalIndex];
+    }
+
     function getPositionDir(vx , vy){
-        let thrv = 1
+        let thrv = 0.5
         if(vx >= thrv){
             return "right"
         }else if(vx <= -thrv){
@@ -95,6 +112,7 @@ ApplicationWindow {
 
         // Clear path
         path = []
+
     }
 
     function startRecording() {
@@ -106,15 +124,7 @@ ApplicationWindow {
 
     function stopRecording() {
         isRecording = false
-        // Log path coordinates to console
-        console.log("Recorded Path:")
-        for (var i = 0; i < path.length; ++i) {
-            var point = path[i];
-            console.log(
-                        "Position(X):", point.x.toFixed(2),
-                        "Position(Y):", point.y.toFixed(2),
-                        "Position(Z):", point.z.toFixed(2));
-        }
+        savePath()
     }
 
     function savePath(){
@@ -123,7 +133,7 @@ ApplicationWindow {
             let newState = {
                 "start": startPos,
                 "end": { "x": position.px.toFixed(2), "y": position.py.toFixed(2) },
-                "direction": lastPosDir,
+                "direction": getGlobalDirection(lastPosDir, lastDir),
                 "angle": lastDir
             }
             root.path.push(newState)
@@ -185,9 +195,8 @@ ApplicationWindow {
 
                         if (underThrCount === 5) {
                             let currentDir = getDirection(rotation.rz)
-                            if((currentDir !== lastDir) && (currentDir !== "default")){
-                                console.log("from G")
-                                savePath()
+                            if((currentDir !== lastDir) && (lastPosDir !== "default")){
+                                console.log("from G" , lastDir , currentDir)
                                 lastDir = currentDir
                             }
                         }
@@ -232,7 +241,6 @@ ApplicationWindow {
                         return
 
                         let thr = 0.5
-                        let thrv = 1
 
                         if ((ax <= thr && ax >= -thr) && (ay <= thr && ay >= -thr) && (az <= thr && az >= -thr)) {
                             underThrCount += 1
@@ -252,14 +260,14 @@ ApplicationWindow {
                         vz += (az > thr || az < -thr) ? (az * timeSinceLast) : 0
 
                         let currentPosDir = getPositionDir(vx, vy)
-                        if(lastPosDir === "default"){
-                            lastPosDir = currentPosDir
-                        }else if((lastPosDir !== currentPosDir) && (currentPosDir !== "default")){
-                            console.log("from A", lastPosDir, currentPosDir)
-                            savePath()
-                            lastPosDir = currentPosDir
-                        }
+                        if( currentPosDir !== "default"){
 
+                            if(lastPosDir === "default" || lastPosDir !== currentPosDir){
+                                console.log("from A", lastPosDir, currentPosDir)
+                                lastPosDir = currentPosDir
+                                savePath()
+                            }
+                        }
                         position.px += vx * timeSinceLast * 100
                         position.py += vy * timeSinceLast * 100
                         position.pz += vz * timeSinceLast * 100
@@ -375,6 +383,12 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
+                    onClicked: {
+                        accelerometer.vx = 0
+                        accelerometer.vy = 0
+                        accelerometer.vz = 0
+
+                    }
                 }
 
                 Button {
