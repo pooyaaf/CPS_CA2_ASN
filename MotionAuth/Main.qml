@@ -13,6 +13,7 @@ ApplicationWindow {
     readonly property int imageSize: width / 2
 
     property var path: []
+    property var authPath: []
     property string lastDir: "0"
     property string lastPosDir: "default"
     property var startPos: ({ "x": 0, "y": 0 })
@@ -28,7 +29,8 @@ ApplicationWindow {
 
     // Recording state
     property bool isRecording: false
-
+    // Recording Authetication
+    property bool isAutheticating: false
 
     function getDirection(degree) {
         // Normalize the degree to a value between 0 and 359
@@ -80,7 +82,7 @@ ApplicationWindow {
         }
     }
     // reset
-    function resetButton() {
+    function refresh(){
         lastPosDir = "default"
         lastDir = "0"
         // Reset gyroscope values
@@ -109,37 +111,80 @@ ApplicationWindow {
         position.px = 0
         position.py = 0
         position.pz = 0
-
+        //
+        startPos["x"] = 0
+        startPos["y"] = 0
+    }
+    function resetButton() {
+        refresh()
         // Clear path
         path = []
-
+        authPath = []
     }
 
     function startRecording() {
-        isRecording = true
-        path = []
-        startPos["x"] = position.px.toFixed(2)
-        startPos["y"] = position.py.toFixed(2)
+        root.isRecording = true
+        root.refresh()
     }
 
     function stopRecording() {
-        isRecording = false
-        savePath()
+        root.isRecording = false
+    }
+    function startAuthenticating() {
+        root.isAutheticating = true
+        root.refresh()
+    }
+
+    function stopAuthenticating() {
+        root.isAutheticating = false
+    }
+
+    function getEndPosition()
+    {
+        let globalDirection = getGlobalDirection(lastPosDir, lastDir)
+        console.log(globalDirection)
+        var res = startPos
+        if(globalDirection === "right")
+            res["x"] += 1
+        if(globalDirection === "left")
+            res["x"] -= 1
+        if(globalDirection === "top")
+            res["y"] += 1
+        if(globalDirection === "down")
+            res["y"] -= 1
+        return res
     }
 
     function savePath(){
-        if (root.isRecording) {
-            // console.log("Save path starting ...")
-            let newState = {
-                "start": startPos,
-                "end": { "x": position.px.toFixed(2), "y": position.py.toFixed(2) },
-                "direction": getGlobalDirection(lastPosDir, lastDir),
-                "angle": lastDir
-            }
-            root.path.push(newState)
-            console.log("newState is:", JSON.stringify(newState))
-            startPos = { "x": position.px.toFixed(2), "y": position.py.toFixed(2) }
+        var endPos = getEndPosition()
+        let newState = {
+            "start": startPos,
+            "end": endPos,
+            "direction": getGlobalDirection(lastPosDir, lastDir),
+            "angle": lastDir
         }
+        if (root.isRecording)
+            root.path.push(newState)
+        if(root.isAutheticating)
+            root.authPath.push(newState)
+
+        console.log("newState is:", JSON.stringify(newState))
+        startPos = endPos
+    }
+
+    function checkPath(){
+        if(root.path.length === 0 )
+            return "Record first"
+        if(root.path.length !== root.authPath.length)
+            return "not matched!"
+        for (let i = 0; i < root.path.length; i++) {
+            let item1 = root.path[i]
+            let item2 = root.authPath[i]
+            if (item1["direction"] !== item2["direction"] || item1["angle"] !== item2["angle"]) {
+                return "not matched!"
+            }
+        }
+        return "matched"
     }
 
     // Main page content
@@ -387,15 +432,45 @@ ApplicationWindow {
                         accelerometer.vx = 0
                         accelerometer.vy = 0
                         accelerometer.vz = 0
-
+                        if(root.isAutheticating){
+                            text = "Start Authentication"
+                            root.stopAuthenticating()
+                        }
+                        else{
+                            text = "Stop Authentication"
+                            root.startAuthenticating()
+                        }
                     }
                 }
-
+                // validation process
+                Popup {
+                    id: validatePopup
+                    width: 200
+                    height: 150
+                    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                    property string popupMessage: "Default message"
+                    Column {
+                        anchors.centerIn: parent
+                        Text {
+                            text: validatePopup.popupMessage
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                        Button {
+                            text: "Close"
+                            onClicked: validatePopup.close()
+                        }
+                    }
+                }
                 Button {
                     text: "Validate"
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
+                    onClicked: {
+                        validatePopup.popupMessage = checkPath()
+                        validatePopup.open()
+
+                    }
                 }
 
                 Button {
@@ -408,4 +483,5 @@ ApplicationWindow {
             }
         }
     }
+
 }
