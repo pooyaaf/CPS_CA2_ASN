@@ -4,19 +4,31 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtSensors
+import QtCharts
 import "."
 
 ApplicationWindow {
     id: root
+    // rotation and position
+    property real rx: 0
+    property real ry: 0
+    property real rz: 0
+
+
+
+    property real px: 0
+    property real py: 0
+    property real pz: 0
+
 
     readonly property int defaultFontSize: 22
-    readonly property int imageSize: width / 2
 
     property var path: []
     property var authPath: []
     property string lastDir: "0"
     property string lastPosDir: "default"
     property var startPos: ({ "x": 0, "y": 0 })
+    property int stepSize: 40
 
     visible: true
     width: 400
@@ -103,17 +115,20 @@ ApplicationWindow {
         accelerometer.underThrCount = 0
 
         // Reset rotation values
-        rotation.rx = 0
-        rotation.ry = 0
-        rotation.rz = 0
+        rx = 0
+        ry = 0
+        rz = 0
 
         // Reset position values
-        position.px = 0
-        position.py = 0
-        position.pz = 0
-        //
+        px = 0
+        py = 0
+        pz = 0
+        // start positon x and y
         startPos["x"] = 0
         startPos["y"] = 0
+        // translate
+        imageTranslate.x = 0
+        imageTranslate.y = 0
     }
     function resetButton() {
         refresh()
@@ -157,6 +172,8 @@ ApplicationWindow {
 
     function savePath(){
         var endPos = getEndPosition()
+        imageTranslate.x = endPos["x"] * stepSize
+        imageTranslate.y = -endPos["y"] * stepSize
         let newState = {
             "start": startPos,
             "end": endPos,
@@ -239,16 +256,18 @@ ApplicationWindow {
                         }
 
                         if (underThrCount === 5) {
-                            let currentDir = getDirection(rotation.rz)
+                            let currentDir = getDirection(rz)
                             if((currentDir !== lastDir) && (lastPosDir !== "default")){
                                 console.log("from G" , lastDir , currentDir)
                                 lastDir = currentDir
                             }
                         }
 
-                        rotation.rx += (x > thr || x < -thr) ? (x * timeSinceLast) : 0
-                        rotation.ry += (y > thr || y < -thr) ? (y * timeSinceLast) : 0
-                        rotation.rz += (z > thr || z < -thr) ? (z * timeSinceLast) : 0
+                        rx += (x > thr || x < -thr) ? (x * timeSinceLast) : 0
+                        ry += (y > thr || y < -thr) ? (y * timeSinceLast) : 0
+                        rz += (z > thr || z < -thr) ? (z * timeSinceLast) : 0
+                        //
+                        imageZRotation.angle = rz
                     }
                 }
 
@@ -313,100 +332,43 @@ ApplicationWindow {
                                 savePath()
                             }
                         }
-                        position.px += vx * timeSinceLast * 100
-                        position.py += vy * timeSinceLast * 100
-                        position.pz += vz * timeSinceLast * 100
-                    }
-                }
-
-                component NamedProgressBar: ColumnLayout {
-                    property alias text: axes.text
-                    property alias value: bar.value
-                    Text {
-                        id: axes
-                        font.pixelSize: root.defaultFontSize
-                        Layout.fillWidth: true
-                    }
-                    ProgressBar {
-                        id: bar
-                        Layout.fillWidth: true
+                        px += vx * timeSinceLast * 100
+                        py += vy * timeSinceLast * 100
+                        pz += vz * timeSinceLast * 100
                     }
                 }
 
                 ColumnLayout {
-                    id: rotation
-                    spacing: 0
-                    Layout.fillWidth: true
-                    Layout.topMargin: 20
+                    id: layout
+                    y: 20
+                    x : 200
+                    Image {
+                        id: myImage
+                        source: "images/qt_logo.png"
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 100
+                        fillMode: Image.PreserveAspectFit
+                        transform: [
+                            Rotation {
+                                id: imageZRotation
 
-                    property real rx: 0
-                    property real ry: 0
-                    property real rz: 0
+                                angle: 0
+                                axis.x: 0
+                                axis.y: 0
+                                axis.z: 1
+                                origin.x: layout.width / 2
+                                origin.y: layout.height / 3
+                            },
+                            Translate {
+                                id: imageTranslate
 
-                    xText: "Rotation(X): " + rx.toFixed(2)
-                    xValue: 0.5 + (rx / 360)
-                    yText: "Rotation(Y): " + ry.toFixed(2)
-                    yValue: 0.5 + (ry / 360)
-                    zText: "Rotation(Z): " + rz.toFixed(2)
-                    zValue: 0.5 + (rz / 360)
-
-                    property alias xText: xBar.text
-                    property alias xValue: xBar.value
-                    property alias yText: yBar.text
-                    property alias yValue: yBar.value
-                    property alias zText: zBar.text
-                    property alias zValue: zBar.value
-
-                    NamedProgressBar {
-                        id: xBar
-                    }
-
-                    NamedProgressBar {
-                        id: yBar
-                    }
-
-                    NamedProgressBar {
-                        id: zBar
+                                x: 0
+                                y: 0
+                            }
+                        ]
                     }
                 }
-
-                ColumnLayout {
-                    id: position
-                    spacing: 0
-                    Layout.fillWidth: true
-                    Layout.topMargin: 20
-
-                    property real px: 0
-                    property real py: 0
-                    property real pz: 0
-
-                    xText: "Position(X): " + px.toFixed(2)
-                    xValue: 0.5 + (px / 100)
-                    yText: "Position(Y): " + py.toFixed(2)
-                    yValue: 0.5 + (py / 100)
-                    zText: "Position(Z): " + pz.toFixed(2)
-                    zValue: 0.5 + (pz / 100)
-
-                    property alias xText: xPar.text
-                    property alias xValue: xPar.value
-                    property alias yText: yPar.text
-                    property alias yValue: yPar.value
-                    property alias zText: zPar.text
-                    property alias zValue: zPar.value
-
-                    NamedProgressBar {
-                        id: xPar
-                    }
-
-                    NamedProgressBar {
-                        id: yPar
-                    }
-
-                    NamedProgressBar {
-                        id: zPar
-                    }
-                }
-
                 Button {
                     text: "Start Recording"
                     Layout.alignment: Qt.AlignHCenter
