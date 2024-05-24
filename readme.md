@@ -174,7 +174,7 @@ Tracing:
 
 Below are some additional questions asked in our project description:
 
-#### 1. What is the best sampling interval for reading the values of the accelerometer and gyroscope sensors? Justify your argument.
+1. What is the best sampling interval for reading the values of the accelerometer and gyroscope sensors? Justify your argument.
 
     The high or low frequency for an application is a trade-off. If the frequency is low, the accuracy of the program is reduced, and the user experience becomes poor. On the other hand, if we increase the frequency, we face problems such as increased energy consumption, increased sampling noise, and excessive use of hardware.
 
@@ -182,7 +182,7 @@ Below are some additional questions asked in our project description:
 
     Therefore, frequencies between 20 to 50 Hertz, equivalent to 20 to 50 milliseconds, can be used.
 
-#### 2. Research the hardware-based and software-based release sensors and describe each. Which category do the sensors used in this exercise fall into?
+2. Research the hardware-based and software-based release sensors and describe each. Which category do the sensors used in this exercise fall into?
 
     Hardware-based sensors:
 
@@ -206,7 +206,7 @@ Below are some additional questions asked in our project description:
 
     The sensors we have used in this exercise, namely the accelerometer and gyroscope, belong to hardware-based sensors because they receive this data directly from the environment in raw and hardware-based form.
 
-#### 3. What is the difference between defining a sensor as wake-up and non-wake-up? While explaining the advantages and disadvantages of each, specify how doing this affects the way sensor updates are received and as well as path detection results.
+3. What is the difference between defining a sensor as wake-up and non-wake-up? While explaining the advantages and disadvantages of each, specify how doing this affects the way sensor updates are received and as well as path detection results.
 
     **Wake-up Sensors:**
 
