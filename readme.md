@@ -126,17 +126,104 @@ Our coding structure consists of one main file *Main.qml* and some complimentary
 
 # Other Questions
 
+Below are some additional questions asked in our project description:
+
+#### 1. What is the best sampling interval for reading the values of the accelerometer and gyroscope sensors? Justify your argument.
+
+    The high or low frequency for an application is a trade-off. If the frequency is low, the accuracy of the program is reduced, and the user experience becomes poor. On the other hand, if we increase the frequency, we face problems such as increased energy consumption, increased sampling noise, and excessive use of hardware.
+
+    Since in this application, the accuracy of the patterns entered by the user is important in determining the authentication of individuals, we certainly cannot use low frequencies because the nature of the work for which the program is designed is questioned and it is not user-friendly. On the other hand, we do not need the responsiveness of high-frequency applications (such as games). Therefore, we can use average to high frequencies so that the program works well and the power consumption does not increase significantly.
+
+    Therefore, frequencies between 20 to 50 Hertz, equivalent to 20 to 50 milliseconds, can be used.
+
+2. Research the hardware-based and software-based release sensors and describe each. Which category do the sensors used in this exercise fall into?
+
+    Hardware-based sensors:
+
+        Hardware-based sensors are physical components embedded in the device designed to directly measure specific physical values ​​(such as acceleration, rotation, temperature). They directly provide raw data from the hardware.
+
+        Features:
+        - Direct measurement: These sensors directly measure physical properties using electronic components.
+        - Accuracy: They tend to provide very precise and accurate measurements.
+        - Low latency: Since they are embedded in the hardware, data collection is fast and with minimal delay.
+        - Power consumption: They usually consume more energy compared to software-based sensors, but they are optimized for their specific tasks.
+
+    Software-based sensors:
+
+        Software-based sensors are virtual sensors that extract data by processing and combining outputs from multiple hardware-based sensors. They use algorithms to interpret and combine sensor data to provide more complex or high-level information.
+
+        Features:
+        - Derived data: These sensors do not directly measure physical properties but calculate them from the data provided by hardware-based sensors.
+        - Adaptability: They can provide a wide range of functions by combining data from multiple sources.
+        - Efficiency: They often provide low-power ways to obtain complex sensor data, although processing sometimes introduces delays.
+        - Complex algorithms: They rely on complex algorithms to interpret raw data.
+
+    The sensors we have used in this exercise, namely the accelerometer and gyroscope, belong to hardware-based sensors because they receive this data directly from the environment in raw and hardware-based form.
+
+3. What is the difference between defining a sensor as wake-up and non-wake-up? While explaining the advantages and disadvantages of each, specify how doing this affects the way sensor updates are received and as well as path detection results.
+
+    **Wake-up Sensors:**
+
+        Wake-up sensors are sensors that can wake the device from a low-power (sleep) mode to deliver sensor events to the application.
+
+        Advantages:
+        - Higher reliability: Ensures that important sensor events are not missed even when the device is in low-power mode.
+        - Suitable for critical applications: Ideal for applications that require immediate response to sensor events, such as security apps, motion detection, and fitness tracking.
+
+        Disadvantages:
+        - Higher power consumption: Frequently waking up the device from sleep mode leads to increased energy consumption, which can reduce battery life.
+
+    **Non-wake-up Sensors:**
+
+        Non-wake-up sensors do not wake the device from low-power mode to deliver events. Events are only delivered when the device is awake.
+
+        Advantages:
+        - Energy efficiency: Reduced power consumption because the CPU is not frequently woken up from sleep mode.
+        - Battery life: Better battery life, which is crucial for applications that run continuously in the background.
+
+        Disadvantages:
+        - Event loss: Potentially sensitive sensor events may be missed if the device is asleep, which can impact the accuracy of motion detection and other real-time applications.
+
+    Using wake-up sensors provides more reliable and accurate path detection because no sensor events are missed. This is crucial for ensuring the integrity of the authentication process. If non-wake-up sensors are used, path detection accuracy may be compromised due to missed events, which could undermine the reliability of motion-based authentication.
+
+    Sensor updates are only delivered when the device is awake. This can lead to missed events if the device is in sleep mode, reducing the accuracy and reliability of data processing for applications that rely on continuous sensor input.
+    
+    In summary, using wake-up sensors ensures that sensor updates are received immediately, maintaining high accuracy and reliability for real-time applications. However, this comes at the cost of increased power consumption. In contrast, non-wake-up sensors improve energy efficiency and battery life but may result in missed sensor updates when the device is in sleep mode, affecting the accuracy and reliability of applications that depend on continuous data input.
+
 
 # Conclusion
 
-In conclusion, in this course project, we successfully implemented an IoT-based entry and exit management system for a hypothetical company. By leveraging technologies like RFID, Arduino, and web development frameworks, the system provides a seamless integration of hardware and software components to control and monitor access to the premises effectively.
+Sure, here's a conclusion for your project's README file, including a hint about the Perfetto part:
 
-The embedded system, simulated using Proteus, handles the core functionality of reading RFID tags, controlling the door's servo motor, and communicating with the cloud-based web server. The web server, developed using the Qt framework, maintains the list of authorized individuals and processes authentication requests, ensuring only authorized personnel can gain entry.
+## Conclusion
 
-The monitoring application, also built with Qt, establishes a WebSocket connection with the web server, providing real-time visibility into entry and exit events. This centralized monitoring capability enhances security by allowing administrators to promptly detect and address any unauthorized access attempts or suspicious activities.
+In this project, we have successfully developed a motion-based authentication application for Android devices using the Qt framework. The application leverages the device's built-in accelerometer and gyroscope sensors to capture and recognize user-specific motion patterns, providing an innovative approach to user authentication.
 
-Throughout the project, emphasis was placed on modular design, code maintainability, and thorough documentation to facilitate future enhancements or adaptations. The integration of various components, including hardware simulations, web development, and real-time monitoring, challenged our problem-solving and technical skills, contributing to a valuable learning experience. 🚀🌟
+The main features of the application include:
+
+1. **Motion Pattern Recording**: Users can record their unique motion patterns by performing a series of predefined movements with their device. The application captures and stores the sensor data associated with these movements, creating a "motion signature" for future authentication attempts.
+
+2. **Motion Pattern Authentication**: During the authentication process, users are prompted to repeat the same motion pattern they recorded previously. The application compares the real-time sensor data with the stored motion signature, granting access if the patterns match within a specified tolerance.
+
+3. **User Interface**: The application provides a user-friendly interface with buttons for starting/stopping the recording and authentication processes, as well as visualizing the recorded motion path on a canvas. Additionally, it displays real-time sensor data and position information for monitoring purposes.
+
+4. **Sensor Integration**: The application seamlessly integrates with the device's accelerometer and gyroscope sensors, enabling accurate motion data acquisition and processing. Advanced techniques such as noise filtering and stationary detection are employed to ensure reliable motion pattern recognition.
+
+5. **Path Management**: The application efficiently manages the recorded motion path and the authentication path, allowing for easy comparison and validation of the motion patterns.
+
+Furthermore, we have explored the use of the Perfetto tool, which is a powerful profiling and tracing tool provided by Google for Android developers. Perfetto allows us to analyze the application's performance, track system events, and gather valuable insights into the application's behavior, sensor interactions, and potential bottlenecks. By leveraging Perfetto, we can optimize the application's performance and identify areas for improvement.
+
+Overall, this project demonstrates the potential of utilizing device sensors for authentication purposes, offering an intriguing alternative to traditional methods. While further research and refinements may be required to enhance the application's robustness and usability, this project lays the foundation for exploring innovative approaches to user authentication in the realm of mobile devices. 🚀🌟
+
+[@Pooyaaf](https://github.com/pooyaaf): Main.qml |
+[@AliGhAliGh](https://github.com/AliGhAliGh): Main.qml |
+[@SHKSH2002](https://github.com/SHKSH2002): Bonus + Report |
+[@Borna-tl](https://github.com/borna-tl): Bonus + Report
+
 
 ---
 
-[Answers](Answers.md)
+Resources: 
+[Perfetto](https://perfetto.dev/docs/) /
+[Qt](https://www.qt.io/download-open-source) /
+[Android Sensors](https://source.android.com/docs/core/interaction/sensors/sensor-stack)
