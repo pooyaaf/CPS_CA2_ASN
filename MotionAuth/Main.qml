@@ -170,6 +170,7 @@ ApplicationWindow {
 
         console.log("newState is:", JSON.stringify(newState))
         startPos = endPos
+
     }
 
     function checkPath(){
@@ -186,6 +187,34 @@ ApplicationWindow {
         }
         return "matched"
     }
+
+    function drawArrowhead(ctx, x, y, angle) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(10, 5);
+        ctx.lineTo(10, -5);
+        ctx.closePath();
+        ctx.fillStyle = "black";
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Add a new function to generate the path data for online display
+    function generateOnlinePathData() {
+        var onlinePathData = [];
+        for (let i = 0; i < root.path.length; i++) {
+            // onlinePathData.push({ x: root.path[i]["start"]["x"], y: root.path[i]["start"]["y"] });
+            // onlinePathData.push({ x: root.path[i]["end"]["x"], y: root.path[i]["end"]["y"] });
+            let curr_ = root.path[i];
+            onlinePathData.push(curr_["direction"]);
+            // console.log("Path:", JSON.stringify(onlinePathData));
+        }
+        return onlinePathData;
+    }
+
 
     // Main page content
     StackView {
@@ -479,6 +508,113 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
                     onClicked: root.resetButton()
+                }
+
+                // Popup {
+                //     id: onlinePathPopup
+                //     width: 300
+                //     height: 200
+                //     modal: true
+                //     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                //     property string onlinePathData: "Default message"
+                //     Column {
+                //         anchors.centerIn: parent
+                //         Text {
+                //             text: root.onlinePathData
+                //             wrapMode: Text.WordWrap
+                //             horizontalAlignment: Text.AlignHCenter
+                //         }
+                //         Button {
+                //             text: "Close"
+                //             onClicked: onlinePathPopup.close()
+                //         }
+                //     }
+                // }
+
+                Popup {
+                    id: chartPopup
+                    width: 300
+                    height: 300
+                    modal: true
+                    focus: true
+                    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                    anchors.centerIn: parent
+
+                    Canvas {
+                        id: canvas
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        antialiasing: true
+
+                        onPaint: {
+                            var ctx = canvas.getContext("2d");
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                            // Scale the coordinates based on the Canvas size
+                            var scaleFactor = Math.min(canvas.width / 10, canvas.height / 10) * 1.5;
+
+                            var curr_path = generateOnlinePathData();
+                            // Draw each line segment from the onlinePathData vector
+                            var x = 135;
+                            var y = 80;
+                            for (var i = 0; i < curr_path.length; i ++) {
+                                var x_new = x;
+                                var y_new = y;
+                                if (curr_path[i] === "right") {
+                                    x_new += 1 * scaleFactor
+                                } else if (curr_path[i] === "left") {
+                                    x_new -= 1 * scaleFactor
+                                } else if (curr_path[i] === "top") {
+                                    y_new -= 1 * scaleFactor
+                                } else if (curr_path[i] === "down") {
+                                    y_new += 1 * scaleFactor
+                                } else {
+                                    x_new = 135
+                                    y_new = 80
+                                }
+                                // var x1 = curr_path[i].x * scaleFactor;
+                                // var y1 = curr_path[i].y * scaleFactor;
+                                // var x2 = curr_path[i + 1].x * scaleFactor;
+                                // var y2 = curr_path[i + 1].y * scaleFactor;
+
+                                // console.log("x1:", x);
+                                // console.log("y1:", y);
+                                // console.log("x2:", x_new);
+                                // console.log("y2:", y_new);
+
+                                ctx.beginPath();
+                                ctx.moveTo(x, y);
+                                ctx.lineTo(x_new, y_new);
+                                ctx.strokeStyle = "red";
+                                ctx.lineWidth = 4;
+                                ctx.stroke();
+
+                                drawArrowhead(ctx, x_new, y_new, Math.atan2(y - y_new, x - x_new));
+
+                                x = x_new
+                                y = y_new
+                            }
+                        }
+                    }
+
+                    Button {
+                       anchors.bottom: parent.bottom
+                       anchors.horizontalCenter: parent.horizontalCenter
+                       anchors.margins: 10
+                       text: "Close"
+                       onClicked: chartPopup.close()
+                    }
+                }
+
+                // Add a button in your existing QML code to trigger the display of the online path
+                Button {
+                    text: "View Online Path"
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 60
+                    onClicked: {
+                        chartPopup.open();
+                    }
                 }
             }
         }
