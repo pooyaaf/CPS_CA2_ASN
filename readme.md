@@ -1,4 +1,4 @@
-# CA2 - CPS - Motion-based Authentication Android Application
+# CA2 - CPS - Motion-Based Authentication Android Application
 
 ### Table of Contents  
 - [Introduction](#introduction)
@@ -59,64 +59,29 @@ Additionally, the project may incorporate other third-party libraries or depende
 
 # Visual Results
 
-Before we can describe our code and its components, we will demonstrate the result of this project. The demonstration includes both the scenarios where the user has/doesn't have access to open the door as well as the Proteus setup and configuration.
+Before we can describe our code and its components, we will demonstrate the result of this project. The demonstration includes both the scenarios where the user authentication is successful/unsuccessful.
 
 To run the program, we first need to build and run the web server configuration in QT environment.
 
-![Server is Up!](./Images/server-up.png)
+Below, is the corresponding demographic to record a motion pattern and to replicate it inorder to authenticate yourself successfully.
 
-We also need the Proteus configuration below which consists of the following modules: ENC28J60 (ethernet), LM016L (LCD), Servo motor, LED (x2 with resistors), Arduino Uno, Terminal Windows (optional), Not Gate. 
+![Record and Authenticate Patterns](./MotionAuth/images/Authentication-Figure.jpg)
 
-![Proteus Config](./Images/proteus-configuration.png)
-
-Please also note to set the appropriate IP for the ENC28J60 module.
-
-![Ethernet Config](./Images/ethernet-config.png)
-
-Lastly, note that we also need to build and run the client (administrator) configuration in QT environment if we want to monitor users' activities.
+To run the program, we need to connect the android device to our system (using cable), build the project, and deploy (run) it on our device. Please make sure that the developer options is turned on and also USB debugging is enabled.
 
 ## Accept Scenario
 
-In our database, we will authorise all RFIDs with the following format. Note that you can change this code to your own liking.
-
-```
-Database::Database()
-{
-    for (int i = 0; i < 10; ++i) {
-        QJsonObject member;
-        member["username"] = "ali" + QString::number(i);
-        member["rfid"] = "123456789" + QString::number(i);
-        members.append(member);
-    }
-}
-```
-
-For instance, `1234567890` is a valid ID. As it is shown below, on valid inputs, the green led will turn on, the door will roate 90 degrees and the appropriate message is shown. Moreover, the time and rfid value are shown on the LCD module. 
-
-![Proteus Accept Scenario](./Images/accept-scenario.png)
-
-On the server side, if we have the admin requirements, we can successfully log in to our account.
-
-![Server Accept Scenario](./Images/server-accept-scenario.png)
-
-As an admin, we also have the privilege to observe users' activities. For example, we can see that there have been one successful and one unsucceful entry attemps at April 30, 2024 at 12:38 and 12:39 respectively.  
-
-![Server History](./Images/history.png)
-
-> **Note:** Please note that after we have had at least one succeful entry, the server interface will also show the last successful entry record on the left side.
-
-![Server User Entry Record](./Images/server-left-panel.png)
+<img src="./MotionAuth/images/Accept Scenario.gif" alt="Accept Scenario" width="200"/>
 
 
 ## Decline Scenario
 
-On another hand, on invalid inputs, the red led will turn on, the door will stay closed and the *Access Denied* message is shown. Moreover, the *Access Denied* and rfid value are shown on the LCD module. 
+<img src="./MotionAuth/images/Decline Scenario.gif" alt="Decline Scenario" width="200"/>
 
-![Proteus Decline Scenario](./Images/decline-scenario.png)
 
-On the server side, if we have don't have the admin requirements, we cannot successfully log in to our account.
+> **Note:** We have also implemented a bonus excercise to show the online recorded path. Here is the described scenario:
 
-![Server Decline Scenario](./Images/server-accept-scenario.png)
+<img src="./MotionAuth/images/Bonus Part.gif" alt="Online Path" width="200"/>
 
 
 # Code Explanation
