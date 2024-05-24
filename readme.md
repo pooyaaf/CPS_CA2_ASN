@@ -124,6 +124,52 @@ Our coding structure consists of one main file *Main.qml* and some complimentary
 
 # Perfetto
 
+In this part we aim to answer some questions using Perfetto and its *trace* and *profile* operations. 
+
+Heap profiling:
+
+<img src="./MotionAuth/images/Heap profiling.png" alt="Heap profiling" width="800"/>
+
+Tracing:
+
+<img src="./MotionAuth/images/Tracing.png" alt="Tracing" width="800"/>
+
+
+1. What events occur at the system level from the time a data read request is made to a sensor until the data is received, and how much time has elapsed?
+
+    As observed, the duration of the process for reading data from the sensor takes an average of 0.1 milliseconds. Additionally, the events at the CPU level are shown in the image below: first, the read command from the sensor is issued, then the CPU goes into idle mode while the data is read by the sensor, and finally, the software section handling this event is executed.
+
+    <img src="./MotionAuth/images/Sensor request.png" alt="Sensor request" width="600"/>
+
+
+    
+2. Compare the time between reading two consecutive data points from the sensor in Perfetto with the sampling period configured in your code.
+    
+
+    It's the same. For example, in both cases, the accelerometer is 100 Hz.
+
+    <img src="./MotionAuth/images/Sensor read time.png" alt="Sensor read time" width="600"/>
+
+
+3. Is there any conflict (e.g., busy-waiting of a thread until another thread completes its work) between processes (such as using a graphics library) and sensor updates in system calls? Justify your response.
+
+
+    By observing the outputs, since the time intervals for executing the sensor processes are almost identical and the execution of other processes like *systemui* does not alter the execution of the sensors, it can be said that there is no conflict.
+
+    <img src="./MotionAuth/images/Thread Bottleneck 1.png" alt="Thread Bottleneck 1" width="600"/>
+
+    <img src="./MotionAuth/images/Thread Bottleneck 2.png" alt="Thread Bottleneck 2" width="600"/>
+
+
+4. Compare the time required for processing sensor data with the time of other CPU processes.
+
+    On average, it is observed that hardware processes like the sensor are executed in significantly less time compared to software processes like the *MotionAuth* application itself.
+
+    <img src="./MotionAuth/images/Sensor process time.png" alt="Sensor process time" width="600"/>
+
+    <img src="./MotionAuth/images/Motion Auth process time.png" alt="Motion Auth process time" width="600"/>
+
+
 # Other Questions
 
 Below are some additional questions asked in our project description:
@@ -136,7 +182,7 @@ Below are some additional questions asked in our project description:
 
     Therefore, frequencies between 20 to 50 Hertz, equivalent to 20 to 50 milliseconds, can be used.
 
-2. Research the hardware-based and software-based release sensors and describe each. Which category do the sensors used in this exercise fall into?
+#### 2. Research the hardware-based and software-based release sensors and describe each. Which category do the sensors used in this exercise fall into?
 
     Hardware-based sensors:
 
@@ -160,7 +206,7 @@ Below are some additional questions asked in our project description:
 
     The sensors we have used in this exercise, namely the accelerometer and gyroscope, belong to hardware-based sensors because they receive this data directly from the environment in raw and hardware-based form.
 
-3. What is the difference between defining a sensor as wake-up and non-wake-up? While explaining the advantages and disadvantages of each, specify how doing this affects the way sensor updates are received and as well as path detection results.
+#### 3. What is the difference between defining a sensor as wake-up and non-wake-up? While explaining the advantages and disadvantages of each, specify how doing this affects the way sensor updates are received and as well as path detection results.
 
     **Wake-up Sensors:**
 
@@ -192,10 +238,6 @@ Below are some additional questions asked in our project description:
 
 
 # Conclusion
-
-Sure, here's a conclusion for your project's README file, including a hint about the Perfetto part:
-
-## Conclusion
 
 In this project, we have successfully developed a motion-based authentication application for Android devices using the Qt framework. The application leverages the device's built-in accelerometer and gyroscope sensors to capture and recognize user-specific motion patterns, providing an innovative approach to user authentication.
 
